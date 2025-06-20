@@ -8,11 +8,12 @@ from solver import DronePath, Solution, Solver
 
 class AStarSolver(Solver):
     noflyzone_penalty:float  # No-fly zone cezası
-    KNN = 5  # KNN için kullanılacak komşu sayısı
-    deliverycase: DeliveryCase = None  # Teslimat vakası
+    KNN = 4  # KNN için kullanılacak komşu sayısı
+    deliverycase: DeliveryCase  # Teslimat vakası
 
-    def __init__(self,noflyzone_penalty=1000):
+    def __init__(self,noflyzone_penalty=100000000):
         self.noflyzone_penalty = noflyzone_penalty
+        self.deliverycase = None
 
     def calculate_cost(self,distance:float,weight:float,priority:int):
         return (distance * weight) + (priority * 100)
@@ -147,7 +148,7 @@ class AStarSolver(Solver):
             speed=drone.speed,
             start_time=temp_time  # Use arrival time from delivery path
         )
-        temp_time = deliver_path[1][1]
+        temp_time = return_path[1][1]
         return deliver_path,return_path,temp_time
 
     def select_best_drone(self, deliverycase:DeliveryCase, package,time):
@@ -156,13 +157,18 @@ class AStarSolver(Solver):
         best_cost = float('inf')
 
         for drone in deliverycase.drones:
-            if not drone.is_available(time):
+            if not drone.is_available(time) or drone.can_carry(package.weight) is False:
                 continue
             deliver_path, return_path, temp_time = self.delivery_rotue(deliverycase, drone, package, time)
             
+            deliver_energy_consumption = Drone.calculate_energy_consumption(deliver_path[1][0], package.weight)
+            return_energy_consumption = Drone.calculate_energy_consumption(return_path[1][0], 0)
+            
+            total_energy_consumption = deliver_energy_consumption + return_energy_consumption
             total_cost = deliver_path[1][0] + return_path[1][0]
-            if total_cost < best_cost and package.is_within_time_window(temp_time) and Drone.calculate_energy_consumption(total_cost,package.weight) < drone.battery:
+            if total_cost < best_cost and package.is_within_time_window(temp_time) and total_energy_consumption < drone.battery:
                 best_drone_id = drone.id
+                best_cost = total_cost
 
         print(f"Best Drone ID: {best_drone_id}")
         return best_drone_id
@@ -225,9 +231,14 @@ class AStarSolver(Solver):
                             cost=return_path[1][0]
                         )
                     )
+                    deliver_energy_consumption = Drone.calculate_energy_consumption(deliver_path[1][0], package.weight)
+                    return_energy_consumption = Drone.calculate_energy_consumption(return_path[1][0], 0)
+
+                    total_energy_consumption = deliver_energy_consumption + return_energy_consumption
+
                     total_cost = deliver_path[1][0] + return_path[1][0]
                     solution.totalDistance += total_cost
-                    solution.totalConsumption += Drone.calculate_energy_consumption(total_cost,package.weight)
+                    solution.totalConsumption += total_energy_consumption
                     package.set_delivered()
                     drone.set_busy(time)
 

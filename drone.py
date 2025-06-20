@@ -20,6 +20,7 @@ class Drone:
         return weight <= self.max_weight
     
     def set_busy(self, datetime: datetime):
+        print(f"Drone {self.id} is now busy until {datetime}")
         self.atBusyDatetime = datetime
 
     def is_available(self, datetime: datetime) -> bool:
@@ -29,6 +30,6 @@ class Drone:
     
     @staticmethod
     def calculate_energy_consumption(distance: float, weight: float) -> float:
-        base_consumption = 5  # %/metre
+        base_consumption = 35  # %/metre
         weight_factor = 1 + (weight / 10)
         return distance * base_consumption * weight_factor

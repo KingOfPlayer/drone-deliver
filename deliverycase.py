@@ -7,12 +7,17 @@ from package import Package
 
 class DeliveryCase:
     casetime: datetime = datetime.now()
-    drones:List[Drone] = []
-    packages:List[Package] = []
-    noflyzones:List[NoFlyZone] = []
+    drones:List[Drone]
+    packages:List[Package]
+    noflyzones:List[NoFlyZone]
 
     def __init__(self,casetime:datetime, drones: list[dict[str, Any]], packages: list[dict[str, Any]], noflyzones: list[dict[str, Any]]):
+        
+        
         self.casetime = casetime
+        self.drones = []
+        self.packages = []
+        self.noflyzones = []
 
         # Drone'ları yükle
         for d in drones:
@@ -39,7 +44,8 @@ class DeliveryCase:
                 pos=d["pos"],
                 weight=d["weight"],
                 priority=d["priority"],
-                time_window=(start_time, end_time)
+                time_window=(start_time, end_time),
+                delivered=False
             )
             # package.delivered = False
             self.packages.append(package)
@@ -73,7 +79,7 @@ class DeliveryCase:
 
     def get_next_available_package(self, datetime: datetime) -> Package:
         ## Verilen tarihe göre en yakın teslim edilebilecek paketi döndür
-        future_package = [package for package in self.packages if package.time_window[0] > datetime and not package.delivered and package.can_deliver]
+        future_package = [package for package in self.packages if package.time_window[0] >= datetime and not package.delivered and package.can_deliver]
         if future_package == []:
             return None
         return min(future_package, key=lambda p: p.time_window[0])

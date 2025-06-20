@@ -82,9 +82,10 @@ def main():
     print(random_case1.packages)
     random_case1.case_summary()
     Visualizer.visualize(astar.solve(random_case1))
+    random_case1.case_summary()
 
     # 10 drone, 50 package, 5 no-fly zone
-    drones2, packages2, noflyzones2 = randomCaseGenerator.get_random_data(10, 50, 5)
+    drones2, packages2, noflyzones2 = randomCaseGenerator.get_random_data(10, 100, 5, full_time_nfz=True)
     random_case2 = DeliveryCase(
         casetime=datetime.now(),
         drones=drones2,

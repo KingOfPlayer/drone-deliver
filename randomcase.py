@@ -21,23 +21,28 @@ class RandomCaseGenerator:
             "pos": (random.randint(0, 100), random.randint(0, 100)),
             "weight": round(random.uniform(0.5, 4.5), 1),
             "priority": random.randint(1, 5),
-            "time_window": (start_time, end_time)
+            "time_window": (start_time, end_time),
+            "delivered": False
         }
 
-    def random_no_fly_zone(self, nfz_id):
+    def random_no_fly_zone(self, nfz_id, FullTime=False):
         x1, y1 = random.randint(0, 80), random.randint(0, 80)
         x2, y2 = x1 + random.randint(10, 20), y1 + random.randint(10, 20)
         coords = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]
-        start_time = random.randint(0, 60)
-        end_time = random.randint(start_time + 1, start_time + 60)
+        if FullTime:
+            start_time = 0
+            end_time = 60*24
+        else:
+            start_time = random.randint(0, 60)
+            end_time = random.randint(start_time + 1, start_time + 60)
         return {
             "id": nfz_id,  
             "coordinates": coords,
             "active_time": (start_time, end_time)
         }
 
-    def get_random_data(self, num_drones, num_packages, num_nfz):
+    def get_random_data(self, num_drones, num_packages, num_nfz, full_time_nfz=False):
         drones = [self.random_drone(i + 1) for i in range(num_drones)]
         packages = [self.random_delivery(i + 1) for i in range(num_packages)]
-        no_fly_zones = [self.random_no_fly_zone(i + 1) for i in range(num_nfz)]
+        no_fly_zones = [self.random_no_fly_zone(i + 1,full_time_nfz) for i in range(num_nfz)]
         return drones, packages,no_fly_zones
